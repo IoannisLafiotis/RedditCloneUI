@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 import React, { useState } from "react";
 import { withUrqlClient, PartialNextContext } from "next-urql";
 import { createUrqlClient } from "../../utils/createUrqlClient";
-import  NextLink from "next/link";
+import NextLink from "next/link";
 
 const ChangePassword: NextPage<{ token: string }> = () => {
   const router = useRouter();
@@ -22,7 +22,8 @@ const ChangePassword: NextPage<{ token: string }> = () => {
         onSubmit={async (values, { setErrors }) => {
           const response = await changePassword({
             newPassword: values.newPassword,
-            token: typeof router.query.token ==="string" ? router.query.token : "" ,
+            token:
+              typeof router.query.token === "string" ? router.query.token : ""
           });
           if (response.data?.changePassword.errors) {
             const errorMap = toErrorMap(response.data.changePassword.errors);
@@ -46,19 +47,20 @@ const ChangePassword: NextPage<{ token: string }> = () => {
               />
               {tokenError ? (
                 <Flex>
-              <Box mr={2} color="red">{tokenError}</Box>
-              <NextLink href="/forgot-password">
-              <Link>go to forget it again!</Link>
-              </NextLink>
-              </Flex> 
-              ): null 
-            }
+                  <Box mr={2} color="red">
+                    {tokenError}
+                  </Box>
+                  <NextLink href="/forgot-password">
+                    <Link>go to forget it again!</Link>
+                  </NextLink>
+                </Flex>
+              ) : null}
             </Box>
             <Button
               mt={4}
               type="submit"
               isLoading={isSubmitting}
-              colorScheme={theme.colors.teal}
+              colorScheme={theme.colors.black}
             >
               Change Password
             </Button>
@@ -69,6 +71,7 @@ const ChangePassword: NextPage<{ token: string }> = () => {
   );
 };
 
-
-export default withUrqlClient(createUrqlClient)(ChangePassword as NextComponentType<PartialNextContext, {}, {}>);
+export default withUrqlClient(createUrqlClient)(
+  ChangePassword as NextComponentType<PartialNextContext, {}, {}>
+);
 // export default ChangePassword;

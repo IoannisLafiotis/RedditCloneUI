@@ -15,7 +15,7 @@ export const ForgotPassword: React.FC<{}> = ({}) => {
     <Wrapper variant="small">
       <Formik
         initialValues={{ email: "" }}
-        onSubmit={async (values) => {
+        onSubmit={async values => {
           await forgotPassword(values);
           setComplete(true);
         }}
@@ -37,14 +37,13 @@ export const ForgotPassword: React.FC<{}> = ({}) => {
                 mt={4}
                 type="submit"
                 isLoading={isSubmitting}
-                colorScheme={theme.colors.teal}
+                colorScheme="teal"
               >
                 Send email!
               </Button>
             </Form>
           )
         }
-        )
       </Formik>
     </Wrapper>
   );

@@ -1,21 +1,24 @@
-import { dedupExchange, fetchExchange } from "urql";
-import { cacheExchange } from "@urql/exchange-graphcache";
+import { dedupExchange, fetchExchange, stringifyVariables } from "urql";
+import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
 import {
   LogoutMutation,
   MeQuery,
   LoginMutation,
   RegisterMutation,
   MeDocument,
+  VoteMutationVariables
 } from "../generated/graphql";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 
 import { pipe, tap } from "wonka";
 import { Exchange } from "urql";
 import Router from "next/router";
+import gql from "graphql-tag";
+import { isServer } from "./isServer";
 
 // dont know exactly what this does but it is giving an error
 // this way we can generalized the error and pass it in the UrqlClient
-const errorExchange: Exchange = ({ forward }) => (ops$) => {
+const errorExchange: Exchange = ({ forward }) => ops$ => {
   return pipe(
     forward(ops$),
     tap(({ error }) => {
@@ -26,16 +29,107 @@ const errorExchange: Exchange = ({ forward }) => (ops$) => {
   );
 };
 
-export const createUrqlClient = (ssrExchange: any) => ({
+const cursorPagination = (): Resolver => {
+  return (_parent, fieldArgs, cache, info) => {
+    const { parentKey: entityKey, fieldName } = info;
+    // get all the query data in the cache
+    const allFields = cache.inspectFields(entityKey);
+    const fieldInfos = allFields.filter(info => info.fieldName === fieldName);
+    const size = fieldInfos.length;
+    if (size === 0) {
+      return undefined;
+    }
+
+    // create the field key!
+    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+
+    // with the resolve function we can select the field that we want!!
+    const isItInTheCache = cache.resolve(
+      cache.resolveFieldByKey(entityKey, fieldKey) as string,
+      "posts"
+    );
+    info.partial = !isItInTheCache;
+    let hasMore = true;
+    const results: string[] = [];
+    // search why do we need to cache stuff!!
+    fieldInfos.forEach(fi => {
+      const key = cache.resolveFieldByKey(entityKey, fi.fieldKey) as string;
+      const data = cache.resolve(key, "posts") as string[];
+      const _hasMore = cache.resolve(key, "hasMore");
+      if (!_hasMore) {
+        hasMore = _hasMore as boolean;
+      }
+      results.push(...data);
+    });
+
+    return {
+      __typename: "PaginatedPosts",
+      hasMore,
+      posts: results
+    };
+  };
+};
+
+export const createUrqlClient = (ssrExchange: any, ctx:any) => {
+  let cookie = ""
+  if(isServer()){
+    cookie = ctx.req.headers.cookie
+  }
+
+  return {
   url: "http://localhost:4000/graphql",
   fetchOptions: {
     credentials: "include" as const,
+    headers: cookie ? { cookie } : undefined
   },
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null
+      },
+      resolvers: {
+        Query: {
+          posts: cursorPagination()
+        }
+      },
       updates: {
         Mutation: {
+          vote: (_result, args, cache, info) => {
+            const {postId,value} = args as VoteMutationVariables;
+            const data = cache.readFragment(
+              gql`
+              fragment _ on Post {
+                id
+                points
+                voteStatus
+              }`,
+              {id: postId } as any  
+            );
+            if (data){
+              if(data.voteStatus === value){
+                return;
+              }
+               const newPoints = (data.points as number) + ((!data.voteStatus ? 1 : 2) * value); 
+               cache.writeFragment(
+                gql`
+                fragment __ on Post {
+                  points
+                  voteStatus
+                }`,
+                {id: postId,points: newPoints,voteStatus:value } as any  
+              );
+              }
+          },
+          createPost: (_result, args, cache, info) => {
+            const allFields = cache.inspectFields("Query");
+            const fieldInfos = allFields.filter(
+              info => info.fieldName === "posts"
+            );
+            fieldInfos.forEach(fi => {
+              cache.invalidate("Query", "posts", fi.arguments || {});
+            });
+          },
           logout: (_result, args, cache, info) => {
             // me query
             betterUpdateQuery<LogoutMutation, MeQuery>(
@@ -56,7 +150,7 @@ export const createUrqlClient = (ssrExchange: any) => ({
                   return query;
                 } else {
                   return {
-                    me: result.login.user,
+                    me: result.login.user
                   };
                 }
               }
@@ -72,17 +166,18 @@ export const createUrqlClient = (ssrExchange: any) => ({
                   return query;
                 } else {
                   return {
-                    me: result.register.user,
+                    me: result.register.user
                   };
                 }
               }
             );
-          },
-        },
-      },
+          }
+        }
+      }
     }),
     errorExchange,
     ssrExchange,
-    fetchExchange,
-  ],
-});
+    fetchExchange
+  ]
+}
+}

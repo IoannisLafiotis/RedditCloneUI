@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }: any) {
     <ThemeProvider theme={theme}>
       <ColorModeProvider
         options={{
-          useSystemColorMode: true,
+          useSystemColorMode: true
         }}
       >
         <CSSReset />

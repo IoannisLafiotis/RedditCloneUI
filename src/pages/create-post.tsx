@@ -17,7 +17,7 @@ const CreatePost: React.FC<{}> = ({}) => {
     <Layout variant="small">
       <Formik
         initialValues={{ title: "", text: "" }}
-        onSubmit={async (values) => {
+        onSubmit={async values => {
           const { error } = await createPost({ input: values });
           console.log("err: ", error);
           if (!error) {
@@ -41,13 +41,12 @@ const CreatePost: React.FC<{}> = ({}) => {
               mt={4}
               type="submit"
               isLoading={isSubmitting}
-              colorScheme={theme.colors.teal}
+              colorScheme={theme.colors.black}
             >
               Create Post
             </Button>
           </Form>
         )}
-        )
       </Formik>
     </Layout>
   );

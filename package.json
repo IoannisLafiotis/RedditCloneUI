@@ -9,7 +9,6 @@
     "gener": "graphql-codegen --config codegen.yml",
     "generate": "graphql-codegen --config codegen.yml",
     "format": "prettier --write \"**/*.{js,css,md,ts,tsx}\""
-
   },
   "dependencies": {
     "@chakra-ui/icons": "^1.0.0",
@@ -38,8 +37,7 @@
     "@graphql-codegen/typescript-operations": "1.17.10",
     "@graphql-codegen/typescript-urql": "2.0.1",
     "@types/node": "^14.14.9",
-    "typescript": "^4.1.2",
-    "prettier": "^1.17.0"
-
+    "prettier": "^1.17.0",
+    "typescript": "^4.1.2"
   }
 }
