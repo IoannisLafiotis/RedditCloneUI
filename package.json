@@ -11,6 +11,7 @@
     "format": "prettier --write \"**/*.{js,css,md,ts,tsx}\""
   },
   "dependencies": {
+    "@apollo/client": "^3.3.6",
     "@chakra-ui/icons": "^1.0.2",
     "@chakra-ui/react": "^1.0.1",
     "@emotion/react": "^11.0.0",
@@ -24,6 +25,7 @@
     "graphql-tag": "^2.11.0",
     "isomorphic-unfetch": "^3.1.0",
     "next": "latest",
+    "next-apollo": "^5.0.4",
     "next-urql": "^2.1.1",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
@@ -35,6 +37,7 @@
     "@graphql-codegen/cli": "^1.19.2",
     "@graphql-codegen/typescript": "1.17.11",
     "@graphql-codegen/typescript-operations": "1.17.10",
+    "@graphql-codegen/typescript-react-apollo": "^2.2.1",
     "@graphql-codegen/typescript-urql": "2.0.1",
     "@types/node": "^14.14.9",
     "prettier": "^1.17.0",

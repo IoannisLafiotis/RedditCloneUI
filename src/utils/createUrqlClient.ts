@@ -71,16 +71,13 @@ const cursorPagination = (): Resolver => {
   };
 };
 
-function invalidateAllPosts(cache: Cache){
+function invalidateAllPosts(cache: Cache) {
   const allFields = cache.inspectFields("Query");
-  const fieldInfos = allFields.filter(
-    info => info.fieldName === "posts"
-  );
+  const fieldInfos = allFields.filter(info => info.fieldName === "posts");
   fieldInfos.forEach(fi => {
     cache.invalidate("Query", "posts", fi.arguments || {});
   });
 }
-
 
 export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   let cookie = "";
@@ -89,7 +86,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
   }
 
   return {
-    url: "http://localhost:4000/graphql",
+    url: process.env.NEXT_PUBLIC_API_URL as string,
     fetchOptions: {
       credentials: "include" as const,
       headers: cookie ? { cookie } : undefined
@@ -107,11 +104,11 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
         },
         updates: {
           Mutation: {
-            deletePost:(_result, args, cache, info)=> {
+            deletePost: (_result, args, cache, info) => {
               cache.invalidate({
                 __typename: "Post",
                 id: (args as DeletePostMutationVariables).id
-              })
+              });
             },
             vote: (_result, args, cache, info) => {
               const { postId, value } = args as VoteMutationVariables;
@@ -143,7 +140,7 @@ export const createUrqlClient = (ssrExchange: any, ctx: any) => {
               }
             },
             createPost: (_result, args, cache, info) => {
-              invalidateAllPosts(cache)
+              invalidateAllPosts(cache);
             },
             logout: (_result, args, cache, info) => {
               // me query
